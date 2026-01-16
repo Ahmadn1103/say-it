@@ -1,3 +1,4 @@
+import { ADMOB_IDS, TEST_IDS } from '@/constants/ads';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
@@ -5,28 +6,26 @@ import { Platform } from 'react-native';
 let RewardedAd: any = null;
 let RewardedAdEventType: any = null;
 let AdEventType: any = null;
-let TestIds: any = null;
 
 try {
   const ads = require('react-native-google-mobile-ads');
   RewardedAd = ads.RewardedAd;
   RewardedAdEventType = ads.RewardedAdEventType;
   AdEventType = ads.AdEventType;
-  TestIds = ads.TestIds;
 } catch (error) {
   console.log('Google Mobile Ads not available - rewarded ads will be disabled');
 }
 
-// TODO: Replace with actual AdMob unit IDs from AdMob console
+// Use test IDs in development, production IDs in release
 const AD_UNIT_IDS = {
-  ios: __DEV__ ? (TestIds?.REWARDED || '') : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
-  android: __DEV__ ? (TestIds?.REWARDED || '') : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+  ios: __DEV__ ? TEST_IDS.rewarded.ios : ADMOB_IDS.rewarded.ios,
+  android: __DEV__ ? TEST_IDS.rewarded.android : ADMOB_IDS.rewarded.android,
 };
 
 const adUnitId = Platform.select({
   ios: AD_UNIT_IDS.ios,
   android: AD_UNIT_IDS.android,
-  default: TestIds?.REWARDED || '',
+  default: TEST_IDS.rewarded.android,
 });
 
 // Create the rewarded ad instance (only if module is available)

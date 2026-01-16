@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { doc, onSnapshot } from 'firebase/firestore';
-import * as Haptics from 'expo-haptics';
+import { BannerAd } from '@/components/ads/BannerAd';
 import { db } from '@/config/firebase';
 import { Room } from '@/config/firestore-schema';
 import { COLLECTIONS } from '@/constants/config';
-import { getAnonymousId } from '@/utils/anonymousId';
-import { leaveRoom } from '@/services/roomService';
 import { generateSummary } from '@/services/gameService';
-import { BannerAd } from '@/components/ads/BannerAd';
+import { leaveRoom } from '@/services/roomService';
+import { getAnonymousId } from '@/utils/anonymousId';
+import * as Haptics from 'expo-haptics';
+import { router, useLocalSearchParams } from 'expo-router';
+import { doc, onSnapshot } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface SummaryData {
   totalRounds: number;
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 24,
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 300,
     justifyContent: 'center',
   },
   statCard: {

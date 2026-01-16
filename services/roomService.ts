@@ -6,8 +6,10 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -159,22 +161,23 @@ export async function startGame(code: string, mode: GameMode): Promise<void> {
     throw new Error(`Need at least ${room.minPlayers} players to start`);
   }
   
-  // Check if Drop It mode has already been used
-  if (mode === 'drop' && room.hasUsedDropIt) {
-    throw new Error('Drop It mode can only be used once per game');
-  }
+  // Delete all old rounds from previous games (for Play Again functionality)
+  const roundsRef = collection(db, COLLECTIONS.ROOMS, code, COLLECTIONS.ROUNDS);
+  const existingRounds = await getDocs(roundsRef);
+  const deletePromises = existingRounds.docs.map((roundDoc) => 
+    deleteDoc(doc(db, COLLECTIONS.ROOMS, code, COLLECTIONS.ROUNDS, roundDoc.id))
+  );
+  await Promise.all(deletePromises);
+  console.log(`Deleted ${existingRounds.size} old rounds for room ${code}`);
   
+  // Reset room state for new game
   const updates: Partial<Room> = {
     status: 'playing',
     currentMode: mode,
     currentRound: 1,
+    hasUsedDropIt: mode === 'drop', // Reset and set based on starting mode
     lastActivity: Timestamp.now(),
   };
-  
-  // Mark Drop It as used if starting with that mode
-  if (mode === 'drop') {
-    updates.hasUsedDropIt = true;
-  }
   
   await updateDoc(roomRef, updates);
   
@@ -201,6 +204,26 @@ export async function endGame(code: string): Promise<void> {
   
   await updateDoc(roomRef, {
     status: 'ended',
+    lastActivity: serverTimestamp(),
+  });
+}
+
+/**
+ * Reset room to waiting state (for Play Again functionality)
+ * @param code - The room code
+ */
+export async function resetRoom(code: string): Promise<void> {
+  const roomRef = doc(db, COLLECTIONS.ROOMS, code);
+  const roomSnap = await getDoc(roomRef);
+  
+  if (!roomSnap.exists()) {
+    throw new Error('Room not found');
+  }
+  
+  await updateDoc(roomRef, {
+    status: 'waiting',
+    currentMode: null,
+    currentRound: 0,
     lastActivity: serverTimestamp(),
   });
 }

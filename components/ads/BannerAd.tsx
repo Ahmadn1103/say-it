@@ -1,3 +1,4 @@
+import { ADMOB_IDS, TEST_IDS } from '@/constants/ads';
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
@@ -8,21 +9,19 @@ interface BannerAdProps {
 // Dynamically import the module to handle when it's not available
 let GoogleBannerAd: any = null;
 let BannerAdSize: any = null;
-let TestIds: any = null;
 
 try {
   const ads = require('react-native-google-mobile-ads');
   GoogleBannerAd = ads.BannerAd;
   BannerAdSize = ads.BannerAdSize;
-  TestIds = ads.TestIds;
 } catch (error) {
   console.log('Google Mobile Ads not available - ads will be disabled');
 }
 
-// TODO: Replace with actual AdMob unit IDs from AdMob console
+// Use test IDs in development, production IDs in release
 const AD_UNIT_IDS = {
-  ios: __DEV__ ? (TestIds?.BANNER || '') : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
-  android: __DEV__ ? (TestIds?.BANNER || '') : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+  ios: __DEV__ ? TEST_IDS.banner.ios : ADMOB_IDS.banner.ios,
+  android: __DEV__ ? TEST_IDS.banner.android : ADMOB_IDS.banner.android,
 };
 
 export function BannerAd({ position = 'bottom' }: BannerAdProps) {
@@ -34,7 +33,7 @@ export function BannerAd({ position = 'bottom' }: BannerAdProps) {
   const adUnitId = Platform.select({
     ios: AD_UNIT_IDS.ios,
     android: AD_UNIT_IDS.android,
-    default: TestIds?.BANNER || '',
+    default: TEST_IDS.banner.android,
   });
 
   return (

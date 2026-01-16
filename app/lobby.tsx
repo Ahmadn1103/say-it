@@ -6,7 +6,7 @@ import { GradientButton } from '@/components/ui/GradientButton';
 import { db } from '@/config/firebase';
 import { GameMode, Room } from '@/config/firestore-schema';
 import { COLLECTIONS, GAME_CONFIG } from '@/constants/config';
-import { leaveRoom, startGame } from '@/services/roomService';
+import { leaveRoom, resetRoom, startGame } from '@/services/roomService';
 import { getAnonymousId } from '@/utils/anonymousId';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -52,6 +52,7 @@ export default function LobbyScreen() {
   const [selectedMode, setSelectedMode] = useState<GameMode>('sentence');
   const [isStarting, setIsStarting] = useState(false);
   const [playerId, setPlayerId] = useState<string>('');
+  const [hasResetRoom, setHasResetRoom] = useState(false);
 
   useEffect(() => {
     // Get player ID
@@ -61,7 +62,7 @@ export default function LobbyScreen() {
     const roomRef = doc(db, COLLECTIONS.ROOMS, roomCode);
     const unsubscribe = onSnapshot(
       roomRef,
-      (snapshot) => {
+      async (snapshot) => {
         if (!snapshot.exists()) {
           Alert.alert('Room Ended', 'This room no longer exists');
           router.replace('/');
@@ -70,6 +71,17 @@ export default function LobbyScreen() {
 
         const roomData = snapshot.data() as Room;
         setRoom(roomData);
+
+        // If room is ended (coming back from Play Again), reset it to waiting
+        if (roomData.status === 'ended' && !hasResetRoom && isHost) {
+          setHasResetRoom(true);
+          try {
+            console.log('Resetting room for Play Again...');
+            await resetRoom(roomCode);
+          } catch (error) {
+            console.error('Error resetting room:', error);
+          }
+        }
 
         // If game has started, navigate to round screen
         if (roomData.status === 'playing') {
@@ -88,7 +100,7 @@ export default function LobbyScreen() {
     return () => {
       unsubscribe();
     };
-  }, [roomCode]);
+  }, [roomCode, hasResetRoom, isHost]);
 
   const handleLeaveRoom = async () => {
     try {
