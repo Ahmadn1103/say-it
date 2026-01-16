@@ -2,31 +2,32 @@ import { ADMOB_IDS, TEST_IDS } from '@/constants/ads';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-// Dynamically import the module to handle when it's not available
+// Dynamically import the module to handle when it's not available (iOS only)
 let RewardedAd: any = null;
 let RewardedAdEventType: any = null;
 let AdEventType: any = null;
 
-try {
-  const ads = require('react-native-google-mobile-ads');
-  RewardedAd = ads.RewardedAd;
-  RewardedAdEventType = ads.RewardedAdEventType;
-  AdEventType = ads.AdEventType;
-} catch (error) {
-  console.log('Google Mobile Ads not available - rewarded ads will be disabled');
+if (Platform.OS === 'ios') {
+  try {
+    const ads = require('react-native-google-mobile-ads');
+    RewardedAd = ads.RewardedAd;
+    RewardedAdEventType = ads.RewardedAdEventType;
+    AdEventType = ads.AdEventType;
+  } catch (error) {
+    console.log('Google Mobile Ads not available - rewarded ads will be disabled');
+  }
 }
 
-// Use test IDs in development, production IDs in release
-const AD_UNIT_IDS = {
-  ios: __DEV__ ? TEST_IDS.rewarded.ios : ADMOB_IDS.rewarded.ios,
-  android: __DEV__ ? TEST_IDS.rewarded.android : ADMOB_IDS.rewarded.android,
+// Use test IDs in development, production IDs in release (iOS only)
+const getAdUnitId = () => {
+  if (Platform.OS !== 'ios') return null;
+  if (__DEV__) {
+    return TEST_IDS.rewarded.ios;
+  }
+  return ADMOB_IDS.rewarded.ios;
 };
 
-const adUnitId = Platform.select({
-  ios: AD_UNIT_IDS.ios,
-  android: AD_UNIT_IDS.android,
-  default: TEST_IDS.rewarded.android,
-});
+const adUnitId = getAdUnitId();
 
 // Create the rewarded ad instance (only if module is available)
 let rewardedAd: any = null;

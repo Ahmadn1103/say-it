@@ -2,29 +2,30 @@ import { ADMOB_IDS, TEST_IDS } from '@/constants/ads';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-// Dynamically import the module to handle when it's not available
+// Dynamically import the module to handle when it's not available (iOS only)
 let InterstitialAd: any = null;
 let AdEventType: any = null;
 
-try {
-  const ads = require('react-native-google-mobile-ads');
-  InterstitialAd = ads.InterstitialAd;
-  AdEventType = ads.AdEventType;
-} catch (error) {
-  console.log('Google Mobile Ads not available - interstitial ads will be disabled');
+if (Platform.OS === 'ios') {
+  try {
+    const ads = require('react-native-google-mobile-ads');
+    InterstitialAd = ads.InterstitialAd;
+    AdEventType = ads.AdEventType;
+  } catch (error) {
+    console.log('Google Mobile Ads not available - interstitial ads will be disabled');
+  }
 }
 
-// Use test IDs in development, production IDs in release
-const AD_UNIT_IDS = {
-  ios: __DEV__ ? TEST_IDS.interstitial.ios : ADMOB_IDS.interstitial.ios,
-  android: __DEV__ ? TEST_IDS.interstitial.android : ADMOB_IDS.interstitial.android,
+// Use test IDs in development, production IDs in release (iOS only)
+const getAdUnitId = () => {
+  if (Platform.OS !== 'ios') return null;
+  if (__DEV__) {
+    return TEST_IDS.interstitial.ios;
+  }
+  return ADMOB_IDS.interstitial.ios;
 };
 
-const adUnitId = Platform.select({
-  ios: AD_UNIT_IDS.ios,
-  android: AD_UNIT_IDS.android,
-  default: TEST_IDS.interstitial.android,
-});
+const adUnitId = getAdUnitId();
 
 // Create the interstitial ad instance (only if module is available)
 let interstitial: any = null;

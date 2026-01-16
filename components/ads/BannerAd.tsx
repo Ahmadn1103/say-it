@@ -6,35 +6,35 @@ interface BannerAdProps {
   position?: 'top' | 'bottom';
 }
 
-// Dynamically import the module to handle when it's not available
+// Dynamically import the module to handle when it's not available (iOS only)
 let GoogleBannerAd: any = null;
 let BannerAdSize: any = null;
 
-try {
-  const ads = require('react-native-google-mobile-ads');
-  GoogleBannerAd = ads.BannerAd;
-  BannerAdSize = ads.BannerAdSize;
-} catch (error) {
-  console.log('Google Mobile Ads not available - ads will be disabled');
+if (Platform.OS === 'ios') {
+  try {
+    const ads = require('react-native-google-mobile-ads');
+    GoogleBannerAd = ads.BannerAd;
+    BannerAdSize = ads.BannerAdSize;
+  } catch (error) {
+    console.log('Google Mobile Ads not available - ads will be disabled');
+  }
 }
 
-// Use test IDs in development, production IDs in release
-const AD_UNIT_IDS = {
-  ios: __DEV__ ? TEST_IDS.banner.ios : ADMOB_IDS.banner.ios,
-  android: __DEV__ ? TEST_IDS.banner.android : ADMOB_IDS.banner.android,
+// Use test IDs in development, production IDs in release (iOS only)
+const getAdUnitId = () => {
+  if (__DEV__) {
+    return TEST_IDS.banner.ios;
+  }
+  return ADMOB_IDS.banner.ios;
 };
 
 export function BannerAd({ position = 'bottom' }: BannerAdProps) {
-  // If ads module not available, return null
-  if (!GoogleBannerAd) {
+  // Only show ads on iOS - web has its own implementation
+  if (Platform.OS !== 'ios' || !GoogleBannerAd) {
     return null;
   }
 
-  const adUnitId = Platform.select({
-    ios: AD_UNIT_IDS.ios,
-    android: AD_UNIT_IDS.android,
-    default: TEST_IDS.banner.android,
-  });
+  const adUnitId = getAdUnitId();
 
   return (
     <View style={[styles.container, position === 'top' ? styles.top : styles.bottom]}>

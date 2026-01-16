@@ -1,45 +1,45 @@
 /**
- * Google AdMob Configuration
+ * Google AdMob Configuration (iOS Only)
  * 
- * SETUP INSTRUCTIONS:
+ * SETUP INSTRUCTIONS FOR iOS:
  * 1. Create an AdMob account at https://admob.google.com/
- * 2. Add your iOS and Android apps
- * 3. Create ad units for each ad type (Banner, Interstitial, Rewarded)
+ * 2. Add your iOS app
+ * 3. Create ad units for each ad type (Banner, Interstitial)
  * 4. Replace the placeholder IDs below with your actual IDs
- * 5. Update app.json with your App IDs (see comments below)
+ * 5. Update app.json with your iOS App ID
  * 
- * APP IDS (for app.json):
+ * APP ID (for app.json):
  * - iOS App ID: ca-app-pub-YOUR_PUBLISHER_ID~YOUR_IOS_APP_ID
- * - Android App ID: ca-app-pub-YOUR_PUBLISHER_ID~YOUR_ANDROID_APP_ID
+ * 
+ * WEB ADS:
+ * - Web uses Google AdSense instead of AdMob
+ * - Set up AdSense at https://adsense.google.com/
+ * - See BannerAd.web.tsx for web ad implementation
  */
 
 // =============================================================================
-// REPLACE THESE WITH YOUR ACTUAL ADMOB IDS
+// REPLACE THESE WITH YOUR ACTUAL ADMOB IDS (iOS ONLY)
 // =============================================================================
 
 export const ADMOB_IDS = {
-  // App IDs (also need to be set in app.json)
+  // iOS App ID (also needs to be set in app.json)
   appId: {
-    ios: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX',
-    android: 'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX',
+    ios: 'ca-app-pub-3372982708744613~4273860221',
   },
   
-  // Banner Ad Unit IDs
+  // Banner Ad Unit ID
   banner: {
-    ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
-    android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+    ios: 'ca-app-pub-3372982708744613/5231912197',
   },
   
-  // Interstitial Ad Unit IDs
+  // Interstitial Ad Unit ID
   interstitial: {
-    ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
-    android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+    ios: 'ca-app-pub-3372982708744613/5749775188',
   },
   
-  // Rewarded Ad Unit IDs
+  // Rewarded Ad Unit ID (optional - not configured)
   rewarded: {
-    ios: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
-    android: 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX',
+    ios: '', // Create a Rewarded ad unit if needed
   },
 };
 
@@ -51,19 +51,29 @@ export const ADMOB_IDS = {
 export const TEST_IDS = {
   appId: {
     ios: 'ca-app-pub-3940256099942544~1458002511',
-    android: 'ca-app-pub-3940256099942544~3347511713',
   },
   banner: {
     ios: 'ca-app-pub-3940256099942544/2934735716',
-    android: 'ca-app-pub-3940256099942544/6300978111',
   },
   interstitial: {
     ios: 'ca-app-pub-3940256099942544/4411468910',
-    android: 'ca-app-pub-3940256099942544/1033173712',
   },
   rewarded: {
     ios: 'ca-app-pub-3940256099942544/1712485313',
-    android: 'ca-app-pub-3940256099942544/5224354917',
+  },
+};
+
+// =============================================================================
+// GOOGLE ADSENSE CONFIGURATION (WEB ONLY)
+// =============================================================================
+
+export const ADSENSE_CONFIG = {
+  // Your AdSense Publisher ID (format: ca-pub-XXXXXXXXXXXXXXXX)
+  publisherId: 'ca-pub-XXXXXXXXXXXXXXXX', // Replace with your AdSense Publisher ID
+  
+  // Ad Slot IDs for different ad units
+  slots: {
+    banner: 'XXXXXXXXXX', // Replace with your Banner Ad Slot ID
   },
 };
 
@@ -73,7 +83,7 @@ export const TEST_IDS = {
 
 export const AD_SETTINGS = {
   // Show interstitial ad every N rounds
-  interstitialFrequency: 3,
+  interstitialFrequency: 5,
   
   // Request non-personalized ads (for GDPR compliance)
   requestNonPersonalizedAdsOnly: false,

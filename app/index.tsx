@@ -325,7 +325,7 @@ export default function HomeScreen() {
           {/* Disclaimer */}
           <View style={styles.disclaimer}>
             <Text style={styles.disclaimerText}>
-              No names • Private • 18+
+              No names • Private • 16+
             </Text>
           </View>
         </View>
