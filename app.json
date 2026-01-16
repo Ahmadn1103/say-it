@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "say-it",
+    "name": "Say It",
     "slug": "say-it",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,8 +8,19 @@
     "scheme": "sayit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "The anonymous party game where you say it without filters. Best played with 6-10 friends. 18+ only.",
+    "primaryColor": "#007AFF",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sayit.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to let you share images in Drop It mode.",
+        "NSCameraUsageDescription": "This app needs access to your camera to let you take photos for Drop It mode.",
+        "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511"
+      },
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +30,17 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.sayit.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ],
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
+      }
     },
     "web": {
       "output": "static",
@@ -38,11 +59,30 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "This app needs access to your photos to let you share images in Drop It mode.",
+          "cameraPermission": "This app needs access to your camera to let you take photos for Drop It mode."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "ageRating": "18+",
+      "contentRating": "Mature 17+"
     }
   }
 }
