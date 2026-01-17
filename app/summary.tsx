@@ -1,4 +1,3 @@
-import { BannerAd } from '@/components/ads/BannerAd';
 import { Leaderboard } from '@/components/game/Leaderboard';
 import { db } from '@/config/firebase';
 import { PlayerScores, Room } from '@/config/firestore-schema';
@@ -219,8 +218,8 @@ export default function SummaryScreen() {
         </Text>
       </ScrollView>
 
-      {/* Banner Ad */}
-      <BannerAd position="bottom" />
+      {/* Banner Ad - Temporarily disabled for testing */}
+      {/* <BannerAd position="bottom" /> */}
     </View>
   );
 }

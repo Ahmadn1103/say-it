@@ -13,11 +13,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ahmadnoori.sayit",
+      "requireFullScreen": false,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to let you share images in Drop It mode.",
         "NSCameraUsageDescription": "This app needs access to your camera to let you take photos for Drop It mode.",
         "GADApplicationIdentifier": "ca-app-pub-3372982708744613~4273860221",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true
       },
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3372982708744613~4273860221"

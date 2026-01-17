@@ -1,4 +1,3 @@
-import { BannerAd } from '@/components/ads/BannerAd';
 import { CapacityWarningModal } from '@/components/modals/CapacityWarningModal';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GradientButton } from '@/components/ui/GradientButton';
@@ -385,8 +384,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Banner Ad */}
-        <BannerAd position="bottom" />
+        {/* Banner Ad - Temporarily disabled for testing */}
+        {/* <BannerAd position="bottom" /> */}
 
         {/* Capacity Warning Modal */}
         <CapacityWarningModal

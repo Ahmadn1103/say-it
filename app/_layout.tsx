@@ -53,14 +53,20 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack 
+        screenOptions={{ 
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+          presentation: 'card',
+        }}
+      >
         <Stack.Screen name="index" options={{ title: 'Say It' }} />
         <Stack.Screen name="lobby" options={{ title: 'Lobby' }} />
         <Stack.Screen name="round" options={{ title: 'Round' }} />
         <Stack.Screen name="reveal" options={{ title: 'Reveal' }} />
         <Stack.Screen name="summary" options={{ title: 'Summary' }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" translucent={true} />
     </ThemeProvider>
   );
 }
