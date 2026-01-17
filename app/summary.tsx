@@ -197,6 +197,7 @@ export default function SummaryScreen() {
           <Text style={styles.summaryTitle}>🏆 Game Highlights</Text>
           <Text style={styles.summaryText}>
             {room.players.length} players completed {summaryData?.totalRounds || room.currentRound} rounds together!
+            {summaryData?.totalReactions ? ` You shared ${summaryData.totalReactions} reactions.` : ''}
             {summaryData?.usedDropIt ? ' You even played Drop It! 📸' : ''}
           </Text>
         </View>

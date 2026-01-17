@@ -12,11 +12,12 @@
     "primaryColor": "#007AFF",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sayit.app",
+      "bundleIdentifier": "com.ahmadnoori.sayit",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to let you share images in Drop It mode.",
         "NSCameraUsageDescription": "This app needs access to your camera to let you take photos for Drop It mode.",
-        "GADApplicationIdentifier": "ca-app-pub-3372982708744613~4273860221"
+        "GADApplicationIdentifier": "ca-app-pub-3372982708744613~4273860221",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3372982708744613~4273860221"
@@ -31,12 +32,13 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sayit.app",
+      "package": "com.ahmadnoori.sayit",
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ],
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
@@ -82,7 +84,11 @@
     },
     "extra": {
       "ageRating": "18+",
-      "contentRating": "Mature 17+"
+      "contentRating": "Mature 17+",
+      "router": {},
+      "eas": {
+        "projectId": "75184505-3f6e-4e24-b253-4941be3c264d"
+      }
     }
   }
 }
