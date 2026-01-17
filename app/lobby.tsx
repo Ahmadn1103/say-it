@@ -168,11 +168,22 @@ export default function LobbyScreen() {
         <View style={styles.playerList}>
           <Text style={styles.sectionTitle}>Players</Text>
           <View style={styles.playerGrid}>
-            {room.players.map((_, index) => (
-              <View key={index} style={styles.playerIcon}>
-                <Text style={styles.playerEmoji}>😎</Text>
-              </View>
-            ))}
+            {room.players.map((id, index) => {
+              const playerName = room.playerNames?.[id] || `Player ${index + 1}`;
+              const isCurrentPlayer = id === playerId;
+              const isHostPlayer = id === room.hostId;
+              return (
+                <View key={id} style={[styles.playerCard, isCurrentPlayer && styles.playerCardYou]}>
+                  <Text style={styles.playerEmoji}>{isHostPlayer ? '👑' : '😎'}</Text>
+                  <Text 
+                    style={[styles.playerName, isCurrentPlayer && styles.playerNameYou]}
+                    numberOfLines={1}
+                  >
+                    {isCurrentPlayer ? 'You' : playerName}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
 
@@ -290,20 +301,36 @@ const styles = StyleSheet.create({
   playerGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: 12,
   },
-  playerIcon: {
-    width: 64,
-    height: 64,
+  playerCard: {
     backgroundColor: 'rgba(167, 139, 250, 0.1)',
-    borderRadius: 32,
-    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(167, 139, 250, 0.2)',
+    minWidth: 90,
+  },
+  playerCardYou: {
+    borderColor: 'rgba(168, 85, 247, 0.5)',
+    backgroundColor: 'rgba(168, 85, 247, 0.15)',
   },
   playerEmoji: {
-    fontSize: 36,
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  playerName: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    textAlign: 'center',
+    maxWidth: 80,
+  },
+  playerNameYou: {
+    color: '#c4b5fd',
+    fontWeight: '700',
   },
   modeSelection: {
     marginTop: 32,

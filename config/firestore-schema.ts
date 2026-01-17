@@ -16,6 +16,22 @@ export interface GlobalCapacity {
 }
 
 /**
+ * Player scores tracking
+ * Key: playerId, Value: cumulative correct guesses
+ */
+export type PlayerScores = {
+  [playerId: string]: number;
+};
+
+/**
+ * Player names tracking
+ * Key: playerId, Value: display name
+ */
+export type PlayerNames = {
+  [playerId: string]: string;
+};
+
+/**
  * Room document
  * Collection: /rooms/{roomCode}
  */
@@ -23,12 +39,14 @@ export interface Room {
   code: string;                 // 6-char uppercase
   hostId: string;                // Anonymous device ID
   players: string[];             // Array of anonymous player IDs
+  playerNames: PlayerNames;      // Map of playerId to display name
   maxPlayers: number;            // Default: 12
   minPlayers: number;            // Default: 2
   status: RoomStatus;
   currentMode: GameMode | null;
   currentRound: number;
   hasUsedDropIt: boolean;        // Can only use Drop It once per game
+  scores: PlayerScores;          // Cumulative correct guesses per player
   createdAt: Timestamp;
   lastActivity: Timestamp;
 }
@@ -59,19 +77,19 @@ export type Reactions = {
 };
 
 /**
- * Guesses for a submission
- * Key: submissionIndex, Value: guessed player ID
+ * Guesses made by a single player
+ * Key: submissionPlayerId (who they're guessing about), Value: guessedPlayerId (their guess)
  */
 export type PlayerGuesses = {
-  [submissionIndex: number]: string;
+  [submissionPlayerId: string]: string;
 };
 
 /**
  * All guesses for a round
- * Key: playerId, Value: their guesses
+ * Key: guessingPlayerId, Value: their guesses for each submission
  */
 export type Guesses = {
-  [playerId: string]: PlayerGuesses;
+  [guessingPlayerId: string]: PlayerGuesses;
 };
 
 /**
@@ -91,9 +109,11 @@ export interface Round {
   mode: GameMode;
   submissions: Submissions;
   reactions: Reactions;
-  guesses?: Guesses;             // Optional guessing mode
+  guesses: Guesses;              // Track who guessed what
+  guessesLockedBy: string[];     // Array of player IDs who have locked in their guesses
   createdAt: Timestamp;          // When this round was created
-  revealedAt: Timestamp | null;
+  revealedAt: Timestamp | null;  // When answers were revealed (guessing phase starts)
+  resultsStartedAt: Timestamp | null; // When results phase started
 }
 
 /**

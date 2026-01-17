@@ -1,8 +1,9 @@
 import { db } from '@/config/firebase';
-import { GameMode, Room, Round, Submission } from '@/config/firestore-schema';
+import { GameMode, PlayerScores, Room, Round, Submission } from '@/config/firestore-schema';
 import { COLLECTIONS } from '@/constants/config';
 import { getUnusedPromptIndex } from '@/constants/prompts';
 import {
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -58,8 +59,11 @@ export async function createRound(roomCode: string, mode: GameMode): Promise<str
     mode,
     submissions: {},
     reactions: {},
+    guesses: {},
+    guessesLockedBy: [],
     createdAt: Timestamp.now(),
     revealedAt: null,
+    resultsStartedAt: null,
   };
   
   await setDoc(roundRef, round);
@@ -197,6 +201,166 @@ export async function addGuess(
   });
   
   await updateRoomActivity(roomCode);
+}
+
+/**
+ * Lock a player's guesses for the round
+ * @param roomCode - The room code
+ * @param roundId - The round ID
+ * @param playerId - The player locking their guesses
+ */
+export async function lockGuesses(
+  roomCode: string,
+  roundId: string,
+  playerId: string
+): Promise<void> {
+  const roundRef = doc(db, COLLECTIONS.ROOMS, roomCode, COLLECTIONS.ROUNDS, roundId);
+  
+  // Use arrayUnion for atomic update (handles concurrent updates)
+  await updateDoc(roundRef, {
+    guessesLockedBy: arrayUnion(playerId),
+  });
+  
+  await updateRoomActivity(roomCode);
+}
+
+/**
+ * Start the results phase with a server timestamp
+ * @param roomCode - The room code
+ * @param roundId - The round ID
+ */
+export async function startResultsPhase(
+  roomCode: string,
+  roundId: string
+): Promise<void> {
+  const roundRef = doc(db, COLLECTIONS.ROOMS, roomCode, COLLECTIONS.ROUNDS, roundId);
+  
+  await updateDoc(roundRef, {
+    resultsStartedAt: serverTimestamp(),
+  });
+  
+  await updateRoomActivity(roomCode);
+}
+
+/**
+ * Check if all players have locked in their guesses
+ * @param roomCode - The room code
+ * @param roundId - The round ID
+ * @returns True if all players have locked their guesses
+ */
+export async function checkAllGuessesLocked(
+  roomCode: string,
+  roundId: string
+): Promise<boolean> {
+  const roomRef = doc(db, COLLECTIONS.ROOMS, roomCode);
+  const roundRef = doc(db, COLLECTIONS.ROOMS, roomCode, COLLECTIONS.ROUNDS, roundId);
+  
+  const [roomSnap, roundSnap] = await Promise.all([
+    getDoc(roomRef),
+    getDoc(roundRef),
+  ]);
+  
+  if (!roomSnap.exists() || !roundSnap.exists()) {
+    return false;
+  }
+  
+  const room = roomSnap.data() as Room;
+  const round = roundSnap.data() as Round;
+  
+  const lockedCount = round.guessesLockedBy?.length || 0;
+  return lockedCount === room.players.length;
+}
+
+/**
+ * Calculate round scores - how many correct guesses each player made
+ * @param roomCode - The room code
+ * @param roundId - The round ID
+ * @returns Object mapping playerId to their correct guess count for this round
+ */
+export async function calculateRoundScores(
+  roomCode: string,
+  roundId: string
+): Promise<PlayerScores> {
+  const roundRef = doc(db, COLLECTIONS.ROOMS, roomCode, COLLECTIONS.ROUNDS, roundId);
+  const roundSnap = await getDoc(roundRef);
+  
+  if (!roundSnap.exists()) {
+    throw new Error('Round not found');
+  }
+  
+  const round = roundSnap.data() as Round;
+  const roundScores: PlayerScores = {};
+  
+  // For each player who made guesses
+  Object.entries(round.guesses || {}).forEach(([guessingPlayerId, playerGuesses]) => {
+    let correctCount = 0;
+    
+    // Check each of their guesses
+    Object.entries(playerGuesses).forEach(([submissionPlayerId, guessedPlayerId]) => {
+      // A guess is correct if they guessed the actual submitter
+      if (guessedPlayerId === submissionPlayerId) {
+        correctCount++;
+      }
+    });
+    
+    roundScores[guessingPlayerId] = correctCount;
+  });
+  
+  return roundScores;
+}
+
+/**
+ * Update cumulative scores in the room
+ * @param roomCode - The room code
+ * @param roundScores - The scores from the current round
+ */
+export async function updateRoomScores(
+  roomCode: string,
+  roundScores: PlayerScores
+): Promise<void> {
+  const roomRef = doc(db, COLLECTIONS.ROOMS, roomCode);
+  
+  // Build update object to increment each player's score
+  const updates: { [key: string]: ReturnType<typeof increment> } = {};
+  
+  Object.entries(roundScores).forEach(([playerId, score]) => {
+    updates[`scores.${playerId}`] = increment(score);
+  });
+  
+  if (Object.keys(updates).length > 0) {
+    await updateDoc(roomRef, updates);
+  }
+  
+  await updateRoomActivity(roomCode);
+}
+
+/**
+ * Get the number of players who haven't locked guesses yet
+ * @param roomCode - The room code
+ * @param roundId - The round ID
+ * @returns The count of players who haven't locked guesses
+ */
+export async function getWaitingGuessCount(
+  roomCode: string,
+  roundId: string
+): Promise<number> {
+  const roomRef = doc(db, COLLECTIONS.ROOMS, roomCode);
+  const roundRef = doc(db, COLLECTIONS.ROOMS, roomCode, COLLECTIONS.ROUNDS, roundId);
+  
+  const [roomSnap, roundSnap] = await Promise.all([
+    getDoc(roomRef),
+    getDoc(roundRef),
+  ]);
+  
+  if (!roomSnap.exists() || !roundSnap.exists()) {
+    return 0;
+  }
+  
+  const room = roomSnap.data() as Room;
+  const round = roundSnap.data() as Round;
+  
+  const lockedCount = round.guessesLockedBy?.length || 0;
+  return room.players.length - lockedCount;
 }
 
 /**

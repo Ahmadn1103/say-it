@@ -1,6 +1,7 @@
 import { BannerAd } from '@/components/ads/BannerAd';
+import { Leaderboard } from '@/components/game/Leaderboard';
 import { db } from '@/config/firebase';
-import { Room } from '@/config/firestore-schema';
+import { PlayerScores, Room } from '@/config/firestore-schema';
 import { COLLECTIONS } from '@/constants/config';
 import { generateSummary } from '@/services/gameService';
 import { leaveRoom } from '@/services/roomService';
@@ -8,7 +9,7 @@ import { getAnonymousId } from '@/utils/anonymousId';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { doc, onSnapshot } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -99,6 +100,29 @@ export default function SummaryScreen() {
     }
   };
 
+  // Calculate winner(s)
+  const winners = useMemo(() => {
+    if (!room?.scores) return [];
+    
+    const scores = room.scores as PlayerScores;
+    const playerScoreList = Object.entries(scores).map(([id, score]) => ({ id, score }));
+    
+    if (playerScoreList.length === 0) return [];
+    
+    // Find max score
+    const maxScore = Math.max(...playerScoreList.map(p => p.score));
+    if (maxScore === 0) return []; // No winner if everyone has 0
+    
+    // Find all players with max score (handles ties)
+    return playerScoreList.filter(p => p.score === maxScore);
+  }, [room?.scores]);
+
+  // Get winner display info
+  const getWinnerDisplay = (winnerId: string): string => {
+    if (winnerId === playerId) return 'You';
+    return room?.playerNames?.[winnerId] || `Player ${(room?.players.indexOf(winnerId) ?? 0) + 1}`;
+  };
+
   if (!room || isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -108,6 +132,8 @@ export default function SummaryScreen() {
     );
   }
 
+  const hasScores = room.scores && Object.values(room.scores).some(s => s > 0);
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -116,6 +142,40 @@ export default function SummaryScreen() {
           <Text style={styles.title}>🎉 Game Over!</Text>
           <Text style={styles.subtitle}>{room.currentRound} Rounds Complete</Text>
         </View>
+
+        {/* Winner Banner */}
+        {winners.length > 0 && (
+          <View style={styles.winnerBanner}>
+            <Text style={styles.winnerCrown}>👑</Text>
+            <Text style={styles.winnerTitle}>
+              {winners.length === 1 ? 'Winner!' : "It's a Tie!"}
+            </Text>
+            <View style={styles.winnerNames}>
+              {winners.map((winner, index) => (
+                <Text key={winner.id} style={styles.winnerName}>
+                  {getWinnerDisplay(winner.id)}
+                  {winners.length > 1 && index < winners.length - 1 ? ' & ' : ''}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.winnerScore}>
+              {winners[0].score} correct {winners[0].score === 1 ? 'guess' : 'guesses'}
+            </Text>
+          </View>
+        )}
+
+        {/* Final Leaderboard */}
+        {hasScores && (
+          <View style={styles.leaderboardContainer}>
+            <Leaderboard
+              scores={room.scores || {}}
+              players={room.players}
+              playerNames={room.playerNames || {}}
+              currentPlayerId={playerId}
+              showTitle
+            />
+          </View>
+        )}
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
@@ -130,20 +190,6 @@ export default function SummaryScreen() {
             <Text style={styles.statValue}>{summaryData?.totalRounds || room.currentRound}</Text>
             <Text style={styles.statLabel}>Rounds</Text>
           </View>
-          
-          <View style={styles.statCard}>
-            <Text style={styles.statEmoji}>❤️</Text>
-            <Text style={styles.statValue}>{summaryData?.totalReactions || 0}</Text>
-            <Text style={styles.statLabel}>Reactions</Text>
-          </View>
-          
-          {summaryData?.mostReactedEmoji && (
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>{summaryData.mostReactedEmoji}</Text>
-              <Text style={styles.statValue}>Top</Text>
-              <Text style={styles.statLabel}>Reaction</Text>
-            </View>
-          )}
         </View>
 
         {/* Fun Summary */}
@@ -151,7 +197,6 @@ export default function SummaryScreen() {
           <Text style={styles.summaryTitle}>🏆 Game Highlights</Text>
           <Text style={styles.summaryText}>
             {room.players.length} players completed {summaryData?.totalRounds || room.currentRound} rounds together!
-            {summaryData?.totalReactions ? ` You shared ${summaryData.totalReactions} reactions.` : ''}
             {summaryData?.usedDropIt ? ' You even played Drop It! 📸' : ''}
           </Text>
         </View>
@@ -218,6 +263,48 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#9ca3af',
     fontWeight: '600',
+  },
+  winnerBanner: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 215, 0, 0.4)',
+    width: '100%',
+    maxWidth: 500,
+  },
+  winnerCrown: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  winnerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFD700',
+    marginBottom: 8,
+  },
+  winnerNames: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  winnerName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  winnerScore: {
+    fontSize: 16,
+    color: '#9ca3af',
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  leaderboardContainer: {
+    width: '100%',
+    maxWidth: 500,
+    marginBottom: 24,
   },
   statsGrid: {
     flexDirection: 'row',

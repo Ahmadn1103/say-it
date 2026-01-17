@@ -13,6 +13,7 @@ interface AnswerTileProps {
   onGuess?: () => void;
   showGuessButton?: boolean;
   isReported?: boolean;
+  showReactions?: boolean; // Whether to show reaction UI (default: true)
 }
 
 const REACTION_EMOJIS = ['😭', '👀', '😬', '🤯', '😂'];
@@ -27,13 +28,14 @@ export function AnswerTile({
   onGuess,
   showGuessButton = false,
   isReported = false,
+  showReactions: enableReactions = true,
 }: AnswerTileProps) {
-  const [showReactions, setShowReactions] = useState(false);
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
 
   const handleReact = (emoji: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onReact?.(emoji);
-    setShowReactions(false);
+    setReactionPickerOpen(false);
   };
 
   const handleReport = () => {
@@ -71,31 +73,33 @@ export function AnswerTile({
         )}
       </View>
 
-      {/* Actions Bar */}
-      <View style={styles.actionsBar}>
-        {/* React Button */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => setShowReactions(!showReactions)}
-        >
-          <Text style={styles.actionIcon}>❤️</Text>
-        </TouchableOpacity>
-
-        {/* Guess Button (Optional) */}
-        {showGuessButton && (
-          <TouchableOpacity style={styles.actionButton} onPress={handleGuess}>
-            <Text style={styles.actionIcon}>🤔</Text>
+      {/* Actions Bar - Only show if reactions are enabled */}
+      {enableReactions && (
+        <View style={styles.actionsBar}>
+          {/* React Button */}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setReactionPickerOpen(!reactionPickerOpen)}
+          >
+            <Text style={styles.actionIcon}>❤️</Text>
           </TouchableOpacity>
-        )}
 
-        {/* Report Button */}
-        <TouchableOpacity style={styles.actionButton} onPress={handleReport}>
-          <Text style={styles.actionIcon}>🚩</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Guess Button (Optional) */}
+          {showGuessButton && (
+            <TouchableOpacity style={styles.actionButton} onPress={handleGuess}>
+              <Text style={styles.actionIcon}>🤔</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Report Button */}
+          <TouchableOpacity style={styles.actionButton} onPress={handleReport}>
+            <Text style={styles.actionIcon}>🚩</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Reaction Selector */}
-      {showReactions && (
+      {enableReactions && reactionPickerOpen && (
         <View style={styles.reactionSelector}>
           {REACTION_EMOJIS.map((emoji) => (
             <TouchableOpacity
@@ -113,7 +117,7 @@ export function AnswerTile({
       )}
 
       {/* Reaction Summary */}
-      {Object.keys(reactions).length > 0 && (
+      {enableReactions && Object.keys(reactions).length > 0 && (
         <View style={styles.reactionSummary}>
           {Object.entries(reactions).map(([emoji, count]) => (
             <View key={emoji} style={styles.reactionItem}>

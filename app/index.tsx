@@ -4,7 +4,7 @@ import { GradientBackground } from '@/components/ui/GradientBackground';
 import { GradientButton } from '@/components/ui/GradientButton';
 import { checkCapacity, subscribeToCapacity } from '@/services/capacityService';
 import { createRoom, joinRoom } from '@/services/roomService';
-import { getAnonymousId } from '@/utils/anonymousId';
+import { getAnonymousId, getPlayerName, setPlayerName } from '@/utils/anonymousId';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 
 export default function HomeScreen() {
+  const [playerNameInput, setPlayerNameInput] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -31,6 +32,15 @@ export default function HomeScreen() {
   const [activeUsers, setActiveUsers] = useState(0);
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
   const [isApproachingCapacity, setIsApproachingCapacity] = useState(false);
+
+  // Load saved player name on mount
+  useEffect(() => {
+    getPlayerName().then((name) => {
+      if (name) {
+        setPlayerNameInput(name);
+      }
+    });
+  }, []);
 
   // Animated values for hover effects
   const createButtonScale = useRef(new Animated.Value(1)).current;
@@ -110,6 +120,21 @@ export default function HomeScreen() {
   }, [isCreating, isJoining]);
 
   const handleCreateRoom = async () => {
+    // Validate name
+    const trimmedName = playerNameInput.trim();
+    if (!trimmedName) {
+      Alert.alert('Enter Your Name', 'Please enter your name to continue');
+      return;
+    }
+    if (trimmedName.length < 2) {
+      Alert.alert('Name Too Short', 'Please enter at least 2 characters');
+      return;
+    }
+    if (trimmedName.length > 15) {
+      Alert.alert('Name Too Long', 'Please keep your name under 15 characters');
+      return;
+    }
+
     try {
       setIsCreating(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -121,15 +146,14 @@ export default function HomeScreen() {
         return;
       }
 
+      // Save player name
+      await setPlayerName(trimmedName);
+
       // Get anonymous ID
       const playerId = await getAnonymousId();
       
-      // Create room
-      const room = await createRoom(playerId);
-
-      // Increment user count
-      // TODO: This should be handled by Cloud Functions (Firestore rules prevent client writes)
-      // await incrementUsers();
+      // Create room with player name
+      const room = await createRoom(playerId, trimmedName);
 
       // Navigate to lobby
       router.push({
@@ -145,6 +169,21 @@ export default function HomeScreen() {
   };
 
   const handleJoinRoom = async () => {
+    // Validate name
+    const trimmedName = playerNameInput.trim();
+    if (!trimmedName) {
+      Alert.alert('Enter Your Name', 'Please enter your name to continue');
+      return;
+    }
+    if (trimmedName.length < 2) {
+      Alert.alert('Name Too Short', 'Please enter at least 2 characters');
+      return;
+    }
+    if (trimmedName.length > 15) {
+      Alert.alert('Name Too Long', 'Please keep your name under 15 characters');
+      return;
+    }
+
     if (joinCode.trim().length !== 6) {
       Alert.alert('Invalid Code', 'Please enter a 6-character room code');
       return;
@@ -161,15 +200,14 @@ export default function HomeScreen() {
         return;
       }
 
+      // Save player name
+      await setPlayerName(trimmedName);
+
       // Get anonymous ID
       const playerId = await getAnonymousId();
       
-      // Join room
-      await joinRoom(joinCode.toUpperCase(), playerId);
-
-      // Increment user count
-      // TODO: This should be handled by Cloud Functions (Firestore rules prevent client writes)
-      // await incrementUsers();
+      // Join room with player name
+      await joinRoom(joinCode.toUpperCase(), playerId, trimmedName);
 
       // Navigate to lobby
       router.push({
@@ -204,7 +242,24 @@ export default function HomeScreen() {
             <Text style={styles.logo}>
               Say <Text style={styles.logoAccent}>It</Text>
             </Text>
-            <Text style={styles.tagline}>Say something. Stay anonymous.</Text>
+            <Text style={styles.tagline}>The party guessing game</Text>
+          </View>
+
+          {/* Name Input */}
+          <View style={styles.nameInputContainer}>
+            <Text style={styles.nameLabel}>Your Name</Text>
+            <BlurView intensity={30} tint="dark" style={styles.nameInputWrapper}>
+              <TextInput
+                style={styles.nameInput}
+                placeholder="Enter your name..."
+                placeholderTextColor="#666"
+                value={playerNameInput}
+                onChangeText={setPlayerNameInput}
+                maxLength={15}
+                autoCorrect={false}
+                editable={!isCreating && !isJoining}
+              />
+            </BlurView>
           </View>
 
           {/* Capacity Warning */}
@@ -325,7 +380,7 @@ export default function HomeScreen() {
           {/* Disclaimer */}
           <View style={styles.disclaimer}>
             <Text style={styles.disclaimerText}>
-              No names • Private • 16+
+              Guess who said it • 16+
             </Text>
           </View>
         </View>
@@ -363,6 +418,30 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     gap: 16,
+  },
+  nameInputContainer: {
+    marginBottom: 24,
+  },
+  nameLabel: {
+    fontSize: 14,
+    color: '#9ca3af',
+    fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  nameInputWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(125, 211, 252, 0.3)',
+  },
+  nameInput: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    fontWeight: '600',
   },
   logo: {
     fontSize: 64,

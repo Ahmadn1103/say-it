@@ -3,9 +3,11 @@ import { nanoid } from 'nanoid';
 import { Platform } from 'react-native';
 
 const ANONYMOUS_ID_KEY = 'anonymous_player_id';
+const PLAYER_NAME_KEY = 'player_display_name';
 
 // In-memory cache to avoid regenerating IDs within the same session
 let cachedId: string | null = null;
+let cachedName: string | null = null;
 
 /**
  * Get or create an anonymous device-specific ID
@@ -73,5 +75,70 @@ export async function clearAnonymousId(): Promise<void> {
     }
   } catch (error) {
     console.error('Error clearing anonymous ID:', error);
+  }
+}
+
+/**
+ * Get the stored player name
+ * @returns The stored name or null if not set
+ */
+export async function getPlayerName(): Promise<string | null> {
+  if (cachedName) {
+    return cachedName;
+  }
+
+  try {
+    if (Platform.OS === 'web') {
+      const name = localStorage.getItem(PLAYER_NAME_KEY);
+      if (name) {
+        cachedName = name;
+      }
+      return name;
+    } else {
+      const name = await SecureStore.getItemAsync(PLAYER_NAME_KEY);
+      if (name) {
+        cachedName = name;
+      }
+      return name;
+    }
+  } catch (error) {
+    console.error('Error getting player name:', error);
+    return cachedName;
+  }
+}
+
+/**
+ * Save the player's display name
+ * @param name - The name to save
+ */
+export async function setPlayerName(name: string): Promise<void> {
+  const trimmedName = name.trim();
+  cachedName = trimmedName;
+
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(PLAYER_NAME_KEY, trimmedName);
+    } else {
+      await SecureStore.setItemAsync(PLAYER_NAME_KEY, trimmedName);
+    }
+  } catch (error) {
+    console.error('Error saving player name:', error);
+  }
+}
+
+/**
+ * Clear the stored player name
+ */
+export async function clearPlayerName(): Promise<void> {
+  try {
+    cachedName = null;
+    
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(PLAYER_NAME_KEY);
+    } else {
+      await SecureStore.deleteItemAsync(PLAYER_NAME_KEY);
+    }
+  } catch (error) {
+    console.error('Error clearing player name:', error);
   }
 }

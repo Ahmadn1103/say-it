@@ -42,9 +42,10 @@ export async function generateRoomCode(): Promise<string> {
 /**
  * Create a new game room
  * @param hostId - The anonymous ID of the player creating the room
+ * @param hostName - The display name of the host
  * @returns The created room object
  */
-export async function createRoom(hostId: string): Promise<Room> {
+export async function createRoom(hostId: string, hostName: string): Promise<Room> {
   const code = await generateRoomCode();
   const roomRef = doc(db, COLLECTIONS.ROOMS, code);
   
@@ -52,12 +53,14 @@ export async function createRoom(hostId: string): Promise<Room> {
     code,
     hostId,
     players: [hostId],
+    playerNames: { [hostId]: hostName },
     maxPlayers: GAME_CONFIG.MAX_PLAYERS,
     minPlayers: GAME_CONFIG.MIN_PLAYERS,
     status: 'waiting',
     currentMode: null,
     currentRound: 0,
     hasUsedDropIt: false,
+    scores: {},
     createdAt: Timestamp.now(),
     lastActivity: Timestamp.now(),
   };
@@ -70,9 +73,10 @@ export async function createRoom(hostId: string): Promise<Room> {
  * Join an existing room
  * @param code - The room code to join
  * @param playerId - The anonymous ID of the player joining
+ * @param playerName - The display name of the player joining
  * @throws Error if room doesn't exist, is full, or game already started
  */
-export async function joinRoom(code: string, playerId: string): Promise<Room> {
+export async function joinRoom(code: string, playerId: string, playerName: string): Promise<Room> {
   const roomRef = doc(db, COLLECTIONS.ROOMS, code.toUpperCase());
   const roomSnap = await getDoc(roomRef);
   
@@ -84,7 +88,13 @@ export async function joinRoom(code: string, playerId: string): Promise<Room> {
   
   // Check if player is already in the room
   if (room.players.includes(playerId)) {
-    return room;
+    // Update name if they're rejoining
+    await updateDoc(roomRef, {
+      [`playerNames.${playerId}`]: playerName,
+      lastActivity: serverTimestamp(),
+    });
+    const updatedSnap = await getDoc(roomRef);
+    return updatedSnap.data() as Room;
   }
   
   // Check if room is full
@@ -97,9 +107,10 @@ export async function joinRoom(code: string, playerId: string): Promise<Room> {
     throw new Error('Game has already started');
   }
   
-  // Add player to room
+  // Add player to room with their name
   await updateDoc(roomRef, {
     players: arrayUnion(playerId),
+    [`playerNames.${playerId}`]: playerName,
     lastActivity: serverTimestamp(),
   });
   
@@ -170,12 +181,19 @@ export async function startGame(code: string, mode: GameMode): Promise<void> {
   await Promise.all(deletePromises);
   console.log(`Deleted ${existingRounds.size} old rounds for room ${code}`);
   
+  // Initialize scores for all players (reset to 0)
+  const initialScores: { [playerId: string]: number } = {};
+  room.players.forEach(playerId => {
+    initialScores[playerId] = 0;
+  });
+  
   // Reset room state for new game
   const updates: Partial<Room> = {
     status: 'playing',
     currentMode: mode,
     currentRound: 1,
     hasUsedDropIt: mode === 'drop', // Reset and set based on starting mode
+    scores: initialScores,
     lastActivity: Timestamp.now(),
   };
   
@@ -188,8 +206,11 @@ export async function startGame(code: string, mode: GameMode): Promise<void> {
     mode,
     submissions: {},
     reactions: {},
+    guesses: {},
+    guessesLockedBy: [],
     createdAt: Timestamp.now(),
     revealedAt: null,
+    resultsStartedAt: null,
   };
   
   await setDoc(roundRef, round);
@@ -224,6 +245,7 @@ export async function resetRoom(code: string): Promise<void> {
     status: 'waiting',
     currentMode: null,
     currentRound: 0,
+    scores: {},
     lastActivity: serverTimestamp(),
   });
 }
