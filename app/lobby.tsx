@@ -29,18 +29,19 @@ const MODE_OPTIONS: { mode: GameMode; label: string; description: string; icon: 
     description: 'Complete the prompt (60 char max)',
     icon: '✍️',
   },
-  {
-    mode: 'drop',
-    label: 'Drop It',
-    description: 'Upload an image (one per game)',
-    icon: '📸',
-  },
-  {
-    mode: 'context',
-    label: 'No Context',
-    description: 'One word or emoji only',
-    icon: '🔥',
-  },
+  // TODO: Add back when I have a better roadmap for these games
+  // {
+  //   mode: 'drop',
+  //   label: 'Drop It',
+  //   description: 'Upload an image (one per game)',
+  //   icon: '📸',
+  // },
+  // {
+  //   mode: 'context',
+  //   label: 'No Context',
+  //   description: 'One word or emoji only',
+  //   icon: '🔥',
+  // },
 ];
 
 export default function LobbyScreen() {
@@ -240,6 +241,7 @@ export default function LobbyScreen() {
           {isHost && (
             <TouchableOpacity
               style={[
+                styles.button,
                 styles.startButton,
                 (!canStartGame || isStarting) && styles.buttonDisabled,
               ]}
@@ -366,11 +368,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modeLabelSelected: {
-    color: '#c4b5fd',
+    color: '#FFFFFF',
   },
   modeDescription: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#FFFFFF',
   },
   checkmark: {
     fontSize: 24,

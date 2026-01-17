@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: '#7dd3fc',
     fontWeight: '500',
   },
   capacityWarning: {
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#b6bdcc',
     fontWeight: '500',
   },
 });
