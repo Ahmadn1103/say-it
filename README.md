@@ -1,6 +1,6 @@
 # Say It - Anonymous Party Game
 
-Say It is a private, anonymous, round-based party game where friends can express themselves without filters. Play with 2-12 players (best with 6-10) in three different game modes.
+Say It is a private, anonymous, round-based party game where friends can express themselves without filters. Play with 3-12 players (best with 6-10) in three different game modes.
 
 ## 🎮 Game Modes
 
@@ -124,7 +124,7 @@ firebase emulators:start
 
 ### Core Gameplay
 - ✅ Private room codes (6 characters)
-- ✅ 2-12 players per room
+- ✅ 3-12 players per room
 - ✅ 3 game modes with unique mechanics
 - ✅ Anonymous submissions
 - ✅ Emoji reactions (😭 👀 😬 🤯 😂)

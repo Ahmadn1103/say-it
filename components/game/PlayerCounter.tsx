@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { GAME_CONFIG } from '@/constants/config';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface PlayerCounterProps {
   currentPlayers: number;
@@ -16,7 +16,7 @@ export function PlayerCounter({
   // Determine color based on player count
   const getColor = () => {
     if (currentPlayers < GAME_CONFIG.MIN_PLAYERS) return '#FF3B30'; // Red
-    if (currentPlayers >= 2 && currentPlayers <= 5) return '#FF9500'; // Yellow
+    if (currentPlayers >= 3 && currentPlayers <= 5) return '#FF9500'; // Yellow
     if (currentPlayers >= 6 && currentPlayers <= 10) return '#34C759'; // Green
     if (currentPlayers >= 11) return '#FF9500'; // Orange (too many)
     return '#999';
@@ -24,9 +24,9 @@ export function PlayerCounter({
 
   const getMessage = () => {
     if (currentPlayers < GAME_CONFIG.MIN_PLAYERS) {
-      return 'Need at least 2 players';
+      return 'Need at least 3 players';
     }
-    if (showRecommended && currentPlayers >= 2 && currentPlayers < 6) {
+    if (showRecommended && currentPlayers >= 3 && currentPlayers < 6) {
       return `Best with ${GAME_CONFIG.RECOMMENDED_PLAYERS} players`;
     }
     if (currentPlayers >= 11) {

@@ -6,7 +6,7 @@ export const GAME_CONFIG = {
   MAX_CONCURRENT_USERS: 5000,
   
   // Player limits
-  MIN_PLAYERS: 2,
+  MIN_PLAYERS: 3,
   MAX_PLAYERS: 12,
   RECOMMENDED_PLAYERS: '6-10',
   

@@ -25,7 +25,7 @@ const MODE_OPTIONS: { mode: GameMode; label: string; description: string; icon: 
   {
     mode: 'sentence',
     label: 'Finish the Sentence',
-    description: 'Complete the prompt (60 char max)',
+    description: 'Complete the prompt',
     icon: '✍️',
   },
   // TODO: Add back when I have a better roadmap for these games
